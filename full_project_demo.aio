@@ -17,7 +17,7 @@ $crea=file Name="vs_solution" %Not_extencion,
 # $crea=file Name="vs_solution/BusinessLogic" %Not_extencion,
 # $crea=file Name="vs_solution/TestsProject" %Not_extencion,
 
-# Crear subdirectorios específicos dentro de los proyectos (estos sí son útiles, si no se infieren del File: )
+# Crear subdirectorios específicos dentro de los proyectos
 $crea=file Name="vs_solution/ApiProject/Controllers" %Not_extencion,
 $crea=file Name="vs_solution/DesktopApp/Views" %Not_extencion,
 $crea=file Name="vs_solution/DesktopApp/ViewModels" %Not_extencion,
@@ -314,7 +314,8 @@ EndGlobal
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <RootNamespace>ApiProject</RootNamespace> </PropertyGroup>
+    <RootNamespace>ApiProject</RootNamespace>
+  </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
   </ItemGroup>
@@ -330,7 +331,8 @@ EndGlobal
     <UseWPF>true</UseWPF>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <RootNamespace>DesktopApp</RootNamespace> </PropertyGroup>
+    <RootNamespace>DesktopApp</RootNamespace>
+  </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\BusinessLogic\BusinessLogic.csproj" />
   </ItemGroup>
@@ -341,7 +343,8 @@ EndGlobal
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <RootNamespace>BusinessLogic</RootNamespace> </PropertyGroup>
+    <RootNamespace>BusinessLogic</RootNamespace>
+  </PropertyGroup>
   <ItemGroup>
   </ItemGroup>
 </Project>
@@ -353,7 +356,8 @@ EndGlobal
     <ImplicitUsings>enable</ImplicitUsings>
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
-    <RootNamespace>TestsProject</RootNamespace> </PropertyGroup>
+    <RootNamespace>TestsProject</RootNamespace>
+  </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
     <PackageReference Include="xunit" Version="2.5.3" />
