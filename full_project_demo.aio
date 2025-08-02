@@ -1,263 +1,193 @@
 <meta>
-project_name = "Aio Full Stack Demo",
+project_name = "VS_Community_2022_Demo",
 version = "1.0.0",
-author = "Your Aio Vision",
-output_dir = "aio_demo_build", # Nuevo directorio para esta demostración
-description = "Comprehensive Aio project demonstrating multi-language generation and build features."
+author = "Aio VS Generator",
+output_dir = "vs_solution", # Directorio de salida para toda la solución de VS
+description = "Comprehensive Aio project demonstrating a multi-project Visual Studio 2022 solution."
 </meta>
 
 <crea>
-# Directorio para recursos del proyecto (imágenes, assets, etc.)
-$crea=file Name="Project_Assets" %Not_extencion,
-$crea=file Name="Project_Assets/logo_aio" %extencion .png,
-$crea=file Name="Project_Assets/data_config" %extencion .json,
+# Crear directorio principal de la solución
+$crea=file Name="vs_solution" %Not_extencion,
 
-# Archivo de ejemplo que se borrará condicionalmente
-# Asumimos que un "pin" 'deploy_success' de esp controlaría si se borra un log de pre-deploy
-# Si 'deploy_success' es "no" (falla), el log se mantendría. Si es "si", se borraría.
-$crea=file Name="pre_deploy_log" %extencion .txt,
-%borra=file="aio_demo_build/pre_deploy_log.txt" &con "deploy_success",
+# Crear directorios para cada proyecto dentro de la solución
+$crea=file Name="vs_solution/ApiProject" %Not_extencion,
+$crea=file Name="vs_solution/DesktopApp" %Not_extencion,
+$crea=file Name="vs_solution/BusinessLogic" %Not_extencion,
+$crea=file Name="vs_solution/TestsProject" %Not_extencion,
 
-# Ejemplo de borrado incondicional de un archivo temporal
-$crea=file Name="temp_build_file" %extencion .tmp,
-%borra=Name="temp_build_file.tmp",
+# Crear subdirectorios específicos dentro de los proyectos
+$crea=file Name="vs_solution/ApiProject/Controllers" %Not_extencion,
+$crea=file Name="vs_solution/DesktopApp/Views" %Not_extencion,
+$crea=file Name="vs_solution/DesktopApp/ViewModels" %Not_extencion,
+$crea=file Name="vs_solution/BusinessLogic/Models" %Not_extencion,
+$crea=file Name="vs_solution/TestsProject/UnitTests" %Not_extencion,
+
+# Crear archivos de ejemplo de assets/recursos dentro de la solución
+$crea=file Name="vs_solution/SharedAssets/icon" %extencion .ico,
+$crea=file Name="vs_solution/SharedAssets/config" %extencion .json
 </crea>
 
 <video>
-  <!DOCTYPE html>
-  <html lang="es">
-  <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aio Full Demo</title>
-    <link rel="stylesheet" href="style.css">
-  </head>
-  <body>
-    <header>
-      <h1>¡Bienvenido a Aio Full Stack Demo!</h1>
-      <img src="Project_Assets/logo_aio.png" alt="Aio Logo" width="100">
-    </header>
-    <main>
-      <section id="frontend-info">
-        <h2>Frontend (HTML, CSS, JS)</h2>
-        <p>Esta página y su estilo han sido generados por Aio.</p>
-        <button id="demoButton">Haz clic para JS</button>
-        <div id="jsOutput"></div>
-      </section>
-
-      <section id="backend-info">
-        <h2>Backend y Lógica (ESP, ING, .NET, Go, Rust, Lua, SQL)</h2>
-        <p>Estos componentes no se ven directamente aquí, pero sus archivos han sido generados.</p>
-        <p>Consulta la carpeta `aio_demo_build/` para ver el código generado.</p>
-      </section>
-
-      <section id="project-structure">
-        <h2>Estructura del Proyecto</h2>
-        <p>Archivos de solución (.sln), proyectos (.csproj), configuración (.config), y XAML para interfaces de escritorio también fueron generados.</p>
-      </section>
-    </main>
-    <footer>
-      <p>&copy; 2025 Aio Demo. Todos los derechos reservados.</p>
-    </footer>
-    <script src="script.js"></script>
-  </body>
-  </html>
+  <h1>Aio Visual Studio 2022 Solution Demo</h1>
+  <p>Esta página web es solo para demostración. El verdadero proyecto de VS se encuentra en la carpeta `vs_solution/`.</p>
+  <p>Abre el archivo `vs_solution/VS_Community_2022_Demo.sln` en Visual Studio 2022 para ver la solución completa.</p>
 </video>
 
 <cs>
 body {
   font-family: 'Segoe UI', sans-serif;
-  margin: 0;
-  padding: 0;
-  background-color: #1a1a2e;
-  color: #e0e0e0;
-  line-height: 1.6;
-}
-header {
-  background-color: #0f3460;
-  padding: 20px 0;
+  background-color: #1b2838; /* Color oscuro similar a VS */
+  color: #c7d2e0;
   text-align: center;
-  border-bottom: 3px solid #e94560;
+  padding: 50px;
 }
-header h1 {
-  margin: 0;
-  color: #fff;
+h1 {
+  color: #007acc; /* Azul de Visual Studio */
 }
-main {
-  max-width: 900px;
-  margin: 20px auto;
-  padding: 0 20px;
-}
-section {
-  background-color: #2e2e4e;
-  padding: 20px;
-  margin-bottom: 20px;
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-}
-h2 {
-  color: #e94560;
-  border-bottom: 2px solid #0f3460;
-  padding-bottom: 10px;
-  margin-top: 0;
-}
-button {
-  background-color: #0f3460;
-  color: white;
-  padding: 10px 15px;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  font-size: 16px;
-  transition: background-color 0.3s ease;
-}
-button:hover {
-  background-color: #e94560;
-}
-footer {
-  text-align: center;
-  padding: 20px;
-  margin-top: 30px;
-  background-color: #0f3460;
-  border-top: 3px solid #e94560;
+p {
+  font-size: 1.1em;
 }
 </cs>
 
 <tp>
-console.log("Aio Full Stack Demo: JavaScript cargado.");
-
-document.getElementById('demoButton').addEventListener('click', () => {
-  const outputDiv = document.getElementById('jsOutput');
-  outputDiv.textContent = '¡El JavaScript se está ejecutando! Fecha: ' + new Date().toLocaleString();
-  outputDiv.style.color = '#0f0';
-  console.log("Botón de demostración JS presionado.");
-});
+console.log("Aio generated web page for VS Solution Demo.");
 </tp>
 
 (esp)
-# Lógica de gestión de un sistema ESP (en español)
-$creafuntion "iniciar_sistema_principal" &intert 
+# Lógica de despliegue para el entorno de VS
+$creafuntion "configurar_entorno_vs" &intert 
 (
-  componentes_activos = ["UI", "BackendDB", "API_Gateway"],
-  modo_operacion = "normal"
+  debug_mode = "verdadero",
+  platform = "Any_CPU"
 ),
-
-$inter=rule(monitorizar_rendimiento (pin= "carga_cpu" "uso_memoria")),
-
-@decte (pin= "carga_cpu" of accion "monitorizar_rendimiento"=run optimizar_recursos {CPU > 80%}),
-@decte (evento="usuario_registrado" of accion "iniciar_sistema_principal"=run notificar_admins {new_user_id}),
-
-# Pin para la demostración de borrado condicional en <crea>
-crea=pin=Name=deploy_success,
-deploy_success=pin={funtion=check_deploy_status}="si" "no", # Conceptual: 'si' si el despliegue fue exitoso, 'no' si falló.
+@decte (evento="construccion_exitosa_vs" of accion "configurar_entorno_vs"=run log_message "Solución de VS construida con éxito."),
 (/esp)
 
 <ING>
-# Logic for an ING system (English)
-$create_function "initialize_main_system" &insert 
+# Build pipeline logic for VS solution
+$create_function "configure_vs_build" &insert 
 (
-  active_components = ["UI", "BackendDB", "API_Gateway"],
-  operation_mode = "normal"
+  configuration = "Debug",
+  target_framework = "net8.0"
 ),
-
-$inter=rule(monitor_performance (pin= "cpu_load" "memory_usage")),
-
-@detect (pin= "cpu_load" of action "monitor_performance"=run optimize_resources {CPU > 80%}),
-@detect (event="user_registered" of action "initialize_main_system"=run notify_admins {new_user_id}),
+@detect (event="build_success" of action "configure_vs_build"=run log_message "VS solution build succeeded."),
 </ING>
 
 (pat)
-# Patrones de Orquestación o Flujo de Trabajo
-$state "System_Idle",
-$state "System_Initializing",
-$state "System_Running",
-$state "System_Maintenance",
-
-$task "Start_System_Workflow",
-    transition_to_state "System_Initializing",
-    log_message "Iniciando secuencia de arranque del sistema.",
-    run_logic_from_esp { $creafuntion "realizar_chequeos_pre_arranque" &intert (), },
-    wait_time (seconds=2.0),
-    log_message "Chequeos completados. Transicionando a Running.",
-    transition_to_state "System_Running",
-    play_sound "system_online.wav",
+# Patrón de construcción de solución VS
+$task "Build_VS_Solution",
+    log_message "Iniciando construcción de solución de Visual Studio...",
+    run_logic_from_esp { $creafuntion "limpiar_proyectos_vs" &intert () },
+    run_logic_from_net { $creafuntion "ejecutar_msbuild" &intert (solution_file="VS_Community_2022_Demo.sln", configuration="Release") },
+    log_message "Construcción de VS completada.",
     end_task,
-
-@on_event "critical_error_detected",
-    transition_to_state "System_Maintenance",
-    log_message "¡Error crítico! Sistema en modo mantenimiento.",
-    alert_system_admins (message="Error en componente X"),
-    run_logic_from_net { $creafuntion "log_error_to_database" &intert (error_code="0xDEADBEEF"), },
 (/pat)
 
 <net>
-// C# Backend Service Code
-using System;
-using System.Threading.Tasks;
+// C# Code for an ASP.NET Core Web API Controller
+// File: vs_solution/ApiProject/Controllers/ValuesController.cs
+using Microsoft.AspNetCore.Mvc;
+using BusinessLogic.Models; // Referencia al proyecto BusinessLogic
 
-namespace AioBackendService
+namespace ApiProject.Controllers
 {
-    public class ServiceLogic
+    [Route("api/[controller]")]
+    [ApiController]
+    public class ValuesController : ControllerBase
     {
-        public string GetSystemStatus()
+        // GET api/values
+        [HttpGet]
+        public ActionResult<IEnumerable<string>> Get()
         {
-            return "Aio Backend Service: Running smoothly.";
+            var user = new User { Id = 1, Name = "AioUser" };
+            return new string[] { "value1", "value2", user.Name };
+        }
+    }
+}
+// C# Code for a Business Logic Model
+// File: vs_solution/BusinessLogic/Models/User.cs
+namespace BusinessLogic.Models
+{
+    public class User
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+    }
+}
+// C# Code for a Desktop App Main Window Code-behind
+// File: vs_solution/DesktopApp/MainWindow.xaml.cs
+using System.Windows;
+using BusinessLogic.Models; // Referencia al proyecto BusinessLogic
+
+namespace DesktopApp
+{
+    public partial class MainWindow : Window
+    {
+        public MainWindow()
+        {
+            InitializeComponent();
+            var user = new User { Id = 2, Name = "DesktopUser" };
+            MessageBox.Show($"Hola desde la aplicación de escritorio Aio! Usuario: {user.Name}");
         }
 
-        public async Task<int> ProcessDataAsync(string data)
+        private void Button_Click(object sender, RoutedEventArgs e)
         {
-            Console.WriteLine($"Processing data: {data}");
-            await Task.Delay(100); // Simulate async work
-            return data.Length * 10;
+            statusTextBlock.Text = "Botón presionado en Desktop App!";
         }
+    }
+}
+// C# Code for a Unit Test Example
+// File: vs_solution/TestsProject/UnitTests/MathTests.cs
+using Xunit; // Requiere Xunit Nuget package
+using BusinessLogic.Calculations; // Asumiendo que esta clase existe
 
-        public static void Main(string[] args)
+namespace TestsProject.UnitTests
+{
+    public class MathTests
+    {
+        [Fact]
+        public void Add_ReturnsCorrectSum()
         {
-            Console.WriteLine("Aio C# Backend Service Started.");
-            ServiceLogic logic = new ServiceLogic();
-            Console.WriteLine(logic.GetSystemStatus());
+            // var result = Calculator.Add(2, 3); // Imagina una clase Calculator en BusinessLogic
+            // Assert.Equal(5, result);
+            Assert.True(true); // Placeholder for actual test
         }
     }
 }
 </net>
 
 <lua>
--- Lua Configuration and Scripting
-local app_settings = {
-    api_endpoint = "https://api.example.com/aio",
-    timeout_seconds = 5,
-    max_retries = 3
-}
-
-function get_api_endpoint()
-    return app_settings.api_endpoint
-end
-
-print("Lua Configuration Loaded:")
-for k, v in pairs(app_settings) do
-    print(string.format("  %s: %s", k, tostring(v)))
+-- Lua script for build automation tasks or pre/post-build steps
+print("Lua: Ejecutando script de automatización de compilación para VS.")
+-- Simulate checking build environment variables
+if os.getenv("CONFIGURATION") == "Debug" then
+    print("Lua: Modo depuración detectado.")
+else
+    print("Lua: Modo release detectado.")
 end
 </lua>
 
 <rs>
-// Rust Performance Critical Module
-// Could be for data processing, cryptography, etc.
-fn main() {
-    println!("Rust Performance Module Loaded.");
-    let numbers = vec![1, 2, 3, 4, 5];
-    let sum: i32 = numbers.iter().sum();
-    println!("Sum calculated in Rust: {}", sum);
-}
-
+// Rust Library for High-Performance Calculations
+// File: vs_solution/BusinessLogic/RustCalculations/src/lib.rs
+// Note: Integrating Rust into .NET requires FFI (Foreign Function Interface) setup
 #[no_mangle]
-pub extern "C" fn process_sensor_data(data_array: *const f64, len: usize) -> f64 {
-    let slice = unsafe { std::slice::from_raw_parts(data_array, len) };
-    slice.iter().sum() / (len as f64) // Calculate average
+pub extern "C" fn multiply_numbers(a: i32, b: i32) -> i32 {
+    a * b
 }
+// Example of a small main.rs if it were a standalone Rust app for testing
+// File: vs_solution/BusinessLogic/RustCalculations/src/main.rs
+/*
+fn main() {
+    println!("Rust test app running. 5 * 3 = {}", multiply_numbers(5, 3));
+}
+*/
 </rs>
 
 <go>
-// Go Microservice or Concurrency Handler
+// Go Microservice for logging or auxiliary tasks
+// File: vs_solution/ApiProject/GoLogger/main.go
 package main
 
 import (
@@ -265,62 +195,51 @@ import (
 	"time"
 )
 
-func main() {
-	fmt.Println("Go Concurrency Handler Started.")
-	// Simulate a concurrent task
-	go func() {
-		for i := 0; i < 2; i++ {
-			time.Sleep(time.Second * 1)
-			fmt.Println("Go: Background task running...")
-		}
-		fmt.Println("Go: Background task complete.")
-	}()
-
-	fmt.Println("Go: Main routine continuing...")
-	time.Sleep(time.Millisecond * 500)
+func LogActivity(activity string) {
+	fmt.Printf("[%s] Activity Logged: %s\n", time.Now().Format(time.RFC3339), activity)
 }
 
-func GetStatusMessage() string {
-    return "Go service is active."
+func main() {
+	fmt.Println("Go Logger Microservice started.")
+	LogActivity("Application initialized.")
 }
 </go>
 
 <sql>
--- SQL Database Schema and Initialization Script
--- For a hypothetical User Management System
-
-CREATE TABLE IF NOT EXISTS users (
-    user_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    username TEXT NOT NULL UNIQUE,
-    email TEXT UNIQUE,
-    password_hash TEXT NOT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    last_login DATETIME
+-- SQL Database Migration Script
+-- File: vs_solution/SqlDatabase/Migrations/001_InitialSchema.sql
+CREATE TABLE IF NOT EXISTS AppSettings (
+    Key TEXT PRIMARY KEY,
+    Value TEXT
 );
 
-CREATE TABLE IF NOT EXISTS products (
-    product_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,
-    description TEXT,
-    price REAL NOT NULL,
-    stock_quantity INTEGER DEFAULT 0
-);
-
-INSERT INTO users (username, email, password_hash) VALUES ('admin_aio', 'admin@aio.com', 'hashed_password_123');
-INSERT INTO products (name, price, stock_quantity) VALUES ('Aio Smart Device', 99.99, 150);
-INSERT INTO products (name, price, stock_quantity) VALUES ('Aio Extension Pack', 29.99, 500);
+INSERT INTO AppSettings (Key, Value) VALUES ('DatabaseVersion', '1.0');
+INSERT INTO AppSettings (Key, Value) VALUES ('FeatureToggleA', 'true');
 </sql>
 
 <sln>
-# Visual Studio Solution File for a multi-project setup
+# Solución de Visual Studio para una estructura de proyectos completa
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AioBackendService", "AioBackendService\AioBackendService.csproj", "{B8F3D1C2-D4E5-4A9B-8C7D-0A1B2C3D4E5F}"
+
+# Proyecto de API Web ASP.NET Core
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApiProject", "ApiProject\ApiProject.csproj", "{B8F3D1C2-D4E5-4A9B-8C7D-0A1B2C3D4E5F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AioDesktopApp", "AioDesktopApp\AioDesktopApp.csproj", "{C9A2E0B1-F3D4-4E8A-9B7C-1D2E3F4A5B6C}"
+
+# Proyecto de Aplicación de Escritorio WPF
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DesktopApp", "DesktopApp\DesktopApp.csproj", "{C9A2E0B1-F3D4-4E8A-9B7C-1D2E3F4A5B6C}"
 EndProject
+
+# Proyecto de Biblioteca de Lógica de Negocio
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BusinessLogic", "BusinessLogic\BusinessLogic.csproj", "{D1C2B3A4-E5F6-4C7D-8B9E-0F1A2B3C4D5E}"
+EndProject
+
+# Proyecto de Pruebas Unitarias (XUnit)
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestsProject", "TestsProject\TestsProject.csproj", "{E0F1D2C3-A4B5-4F6G-7H8I-9J0K1L2M3N4O}"
+EndProject
+
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -331,32 +250,43 @@ Global
 		{B8F3D1C2-D4E5-4A9B-8C7D-0A1B2C3D4E5F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B8F3D1C2-D4E5-4A9B-8C7D-0A1B2C3D4E5F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B8F3D1C2-D4E5-4A9B-8C7D-0A1B2C3D4E5F}.Release|Any CPU.Build.0 = Release|Any CPU
+
 		{C9A2E0B1-F3D4-4E8A-9B7C-1D2E3F4A5B6C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{C9A2E0B1-F3D4-4E8A-9B7C-1D2E3F4A5B6C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C9A2E0B1-F3D4-4E8A-9B7C-1D2E3F4A5B6C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C9A2E0B1-F3D4-4E8A-9B7C-1D2E3F4A5B6C}.Release|Any CPU.Build.0 = Release|Any CPU
+
+		{D1C2B3A4-E5F6-4C7D-8B9E-0F1A2B3C4D5E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D1C2B3A4-E5F6-4C7D-8B9E-0F1A2B3C4D5E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D1C2B3A4-E5F6-4C7D-8B9E-0F1A2B3C4D5E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D1C2B3A4-E5F6-4C7D-8B9E-0F1A2B3C4D5E}.Release|Any CPU.Build.0 = Release|Any CPU
+
+		{E0F1D2C3-A4B5-4F6G-7H8I-9J0K1L2M3N4O}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E0F1D2C3-A4B5-4F6G-7H8I-9J0K1L2M3N4O}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E0F1D2C3-A4B5-4F6G-7H8I-9J0K1L2M3N4O}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E0F1D2C3-A4B5-4F6G-7H8I-9J0K1L2M3N4O}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {D2E1C0B3-F4A5-4E6B-9D8C-2F3E4A5B6C7D}
+		SolutionGuid = {F9E8D7C6-B5A4-3B2C-1D0E-F1A2B3C4D5E6}
 	EndGlobalSection
 EndGlobal
 </sln>
 
 <xaml>
-<Window x:Class="AioDesktopApp.MainWindow"
+<Window x:Class="DesktopApp.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        Title="Aio Desktop App" Height="450" Width="800">
+        Title="Aio Desktop App" Height="350" Width="500">
     <Grid>
         <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-            <TextBlock Text="¡Hola desde Aio Desktop App (XAML)!" FontSize="30" Margin="10" />
-            <Button Content="Haz clic aquí" Width="150" Height="40" Margin="10" Click="Button_Click" />
-            <TextBlock x:Name="statusTextBlock" Text="Esperando interacción..." FontSize="18" Margin="10" />
+            <TextBlock Text="¡Hola desde la App de Escritorio Aio (XAML)!" FontSize="24" Margin="10" />
+            <Button Content="Actualizar Mensaje" Width="200" Height="40" Margin="10" Click="Button_Click" />
+            <TextBlock x:Name="statusTextBlock" Text="Estado: Listo" FontSize="16" Margin="10" FontWeight="Bold" />
         </StackPanel>
     </Grid>
 </Window>
@@ -366,33 +296,72 @@ EndGlobal
 <?xml version="1.0" encoding="utf-8" ?>
 <configuration>
     <appSettings>
+        <add key="ApiBaseUrl" value="http://localhost:5000/api/" />
         <add key="Environment" value="Development" />
-        <add key="LogFilePath" value="C:\Logs\AioDemoApp.log" />
-        <add key="ApiBaseUrl" value="http://localhost:8080/api/v1/" />
     </appSettings>
-    <connectionStrings>
-        <add name="DefaultConnection" 
-             connectionString="Data Source=aio_demo.db;Version=3;" 
-             providerName="System.Data.SQLite" />
-    </connectionStrings>
 </configuration>
 </config>
 
 <csproj>
-<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\BusinessLogic\BusinessLogic.csproj" />
+  </ItemGroup>
+</Project>
 
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net8.0-windows</TargetFramework>
     <UseWPF>true</UseWPF>
-    <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <RootNamespace>AioDesktopApp</RootNamespace>
+    <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
-
   <ItemGroup>
-    <PackageReference Include="Microsoft.Data.SQLite" Version="8.0.0" />
+    <ProjectReference Include="..\BusinessLogic\BusinessLogic.csproj" />
   </ItemGroup>
+</Project>
 
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+  <ItemGroup>
+    </ItemGroup>
+</Project>
+
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
+    <PackageReference Include="xunit" Version="2.5.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.5.3">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="coverlet.collector" Version="6.0.0">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\BusinessLogic\BusinessLogic.csproj" />
+  </ItemGroup>
 </Project>
 </csproj>
