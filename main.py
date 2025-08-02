@@ -176,9 +176,6 @@ def parse_aio_file(file_path):
         'sln': re.findall(r'<sln>(.*?)</sln>', content, re.DOTALL),
         'xaml': re.findall(r'<xaml>(.*?)</xaml>', content, re.DOTALL),
         'config': re.findall(r'<config>(.*?)</config>', content, re.DOTALL),
-        # Captura todos los bloques <csproj> individualmente si están definidos así,
-        # o el contenido completo si hay un solo gran bloque.
-        # Luego se procesará cada project dentro de ese gran bloque.
         'csproj': re.findall(r'<csproj>(.*?)</csproj>', content, re.DOTALL),
     }
     return blocks, config
@@ -221,30 +218,18 @@ def save_blocks_to_files(blocks, config, base_name):
     
     # Manejo de CSPROJ: Tu bloque <csproj> en el .aio contiene MÚLTIPLES <Project ...>
     if blocks['csproj']:
-        # Concatenar todos los contenidos de csproj si hay múltiples bloques <csproj>
-        # Aunque tu .aio tiene un solo <csproj> con múltiples proyectos dentro.
         full_csproj_content = "\n".join(blocks['csproj'])
         
-        # Encuentra cada sección <Project ...> dentro del contenido del bloque <csproj>
-        # Usamos re.finditer para obtener objetos de coincidencia y extraer el contenido
-        # y sus nombres de manera más robusta.
-        # Regex para capturar cada Project Sdk block
-        # Group 1: Sdk attribute value
-        # Group 2: Full content of the <Project> block
         csproj_project_matches = re.finditer(r'<Project Sdk="([^"]+)">\s*(.*?)</Project>', full_csproj_content, re.DOTALL)
         
         for i, match in enumerate(csproj_project_matches):
-            sdk_type = match.group(1) # e.g., "Microsoft.NET.Sdk.Web"
-            project_xml_content = match.group(0) # The full <Project ...> block, including tags
+            sdk_type = match.group(1) 
+            project_xml_content = match.group(0) 
 
-            # Intentar parsear el XML para obtener el nombre del proyecto
             try:
-                # ET no maneja directamente la declaración de Sdk en la raíz,
-                # así que la añadimos temporalmente para que sea XML válido para parsear
-                # Luego extraemos el RootNamespace o AssemblyName
                 root = ET.fromstring(project_xml_content)
                 project_name = None
-                # Buscar <RootNamespace> o <AssemblyName>
+                
                 for prop_group in root.findall('.//PropertyGroup'):
                     root_ns = prop_group.find('RootNamespace')
                     if root_ns is not None and root_ns.text:
@@ -255,23 +240,20 @@ def save_blocks_to_files(blocks, config, base_name):
                         project_name = assembly_name.text.strip()
                         break
                 
-                # Si no se encontró RootNamespace o AssemblyName, intentar inferir de OutputType
                 if not project_name:
                     output_type_elem = root.find('.//OutputType')
                     if output_type_elem is not None and output_type_elem.text:
-                        # Si es WinExe o Exe, podemos inferir un nombre común como "DesktopApp" o "ConsoleApp"
                         if "WinExe" in output_type_elem.text or "Exe" in output_type_elem.text:
                             project_name = "DesktopApp" if "WinExe" in output_type_elem.text else "ConsoleApp"
                         elif "Library" in output_type_elem.text:
-                            project_name = "BusinessLogic" # Asumimos para la lógica de negocio
+                            project_name = "BusinessLogic"
                     
-                # Si aún no se encuentra, usar un nombre genérico con índice
                 if not project_name:
                     project_name = f'UnnamedProject_{i}'
                     if "Web" in sdk_type:
-                        project_name = "ApiProject" # Inferir si es web
+                        project_name = "ApiProject"
                     elif "Test" in sdk_type:
-                        project_name = "TestsProject" # Inferir si es test
+                        project_name = "TestsProject"
                     elif i == 2: # Tercer csproj en tu .aio es BusinessLogic
                         project_name = "BusinessLogic"
                         
@@ -280,7 +262,7 @@ def save_blocks_to_files(blocks, config, base_name):
                 project_name = f'UnnamedProject_{i}'
             
             csproj_filename = f"{project_name}.csproj"
-            project_folder = project_name # La carpeta del proyecto suele ser el mismo nombre
+            project_folder = project_name 
 
             csproj_path = os.path.join(project_folder, csproj_filename)
             file_map.append({'content': project_xml_content, 'path': csproj_path, 'type': 'csproj'})
@@ -306,16 +288,12 @@ def save_blocks_to_files(blocks, config, base_name):
 
     # Manejar archivos XAML (<xaml>) - Guardar como un archivo fijo, ya que no tiene comentarios File: en tu .aio
     if blocks['xaml']:
-        # Asumiendo un único archivo XAML para DesktopApp
-        # Si tu .aio tuviera múltiples archivos XAML con comentarios, necesitarías el split.
-        # Pero dado el .aio actual, es un solo bloque.
         file_map.append({'content': blocks['xaml'][0], 'path': os.path.join("DesktopApp", "MainWindow.xaml"), 'type': 'xaml'})
         print(f"XAML: 'DesktopApp/MainWindow.xaml' identificado y preparado para guardar.")
 
 
     # Manejar archivos de configuración (<config>) - Guardar como un archivo fijo
     if blocks['config']:
-        # Asumiendo un único archivo App.config para DesktopApp
         file_map.append({'content': blocks['config'][0], 'path': os.path.join("DesktopApp", "App.config"), 'type': 'config'})
         print(f"CONFIG: 'DesktopApp/App.config' identificado y preparado para guardar.")
 
@@ -334,7 +312,7 @@ def save_blocks_to_files(blocks, config, base_name):
                     print(f"Rust: '{full_rs_path}' identificado y preparado para guardar.")
                 else:
                     print(f"Advertencia: Bloque <rs> split incompleto. Ignorando parte.")
-        else: # Fallback si no hay comentarios de archivo (para un solo archivo)
+        else:
              file_map.append({'content': blocks['rs'][0], 'path': os.path.join("BusinessLogic", "RustCalculations", "src", "lib.rs"), 'type': 'rs'})
              print(f"Rust (default): 'BusinessLogic/RustCalculations/src/lib.rs' identificado y preparado para guardar.")
 
@@ -353,7 +331,7 @@ def save_blocks_to_files(blocks, config, base_name):
                     print(f"Go: '{full_go_path}' identificado y preparado para guardar.")
                 else:
                     print(f"Advertencia: Bloque <go> split incompleto. Ignorando parte.")
-        else: # Fallback si no hay comentarios de archivo
+        else: 
             file_map.append({'content': blocks['go'][0], 'path': os.path.join("ApiProject", "GoLogger", "main.go"), 'type': 'go'})
             print(f"Go (default): 'ApiProject/GoLogger/main.go' identificado y preparado para guardar.")
 
@@ -372,7 +350,7 @@ def save_blocks_to_files(blocks, config, base_name):
                     print(f"SQL: '{full_sql_path}' identificado y preparado para guardar.")
                 else:
                     print(f"Advertencia: Bloque <sql> split incompleto. Ignorando parte.")
-        else: # Fallback si no hay comentarios de archivo
+        else: 
             file_map.append({'content': blocks['sql'][0], 'path': os.path.join("SqlDatabase", "Migrations", "001_InitialSchema.sql"), 'type': 'sql'})
             print(f"SQL (default): 'SqlDatabase/Migrations/001_InitialSchema.sql' identificado y preparado para guardar.")
 
@@ -391,7 +369,7 @@ def save_blocks_to_files(blocks, config, base_name):
                     print(f"Lua: '{full_lua_path}' identificado y preparado para guardar.")
                 else:
                     print(f"Advertencia: Bloque <lua> split incompleto. Ignorando parte.")
-        else: # Fallback si no hay comentarios de archivo
+        else: 
             file_map.append({'content': blocks['lua'][0], 'path': os.path.join("ApiProject", "config.lua"), 'type': 'lua'})
             print(f"Lua (default): 'ApiProject/config.lua' identificado y preparado para guardar.")
 
@@ -400,22 +378,18 @@ def save_blocks_to_files(blocks, config, base_name):
     print("\n--- Guardando archivos generados ---")
     for item in file_map:
         content = item['content']
-        relative_path = item['path'] # Esta es la ruta relativa al output_dir, incluyendo subdirectorios
+        relative_path = item['path'] 
         file_type = item['type']
 
         full_path = os.path.join(output_dir, relative_path)
         
-        # Asegurarse de que el directorio padre exista
-        # print(f"DEBUG: Intentando crear directorio para '{full_path}'")
         os.makedirs(os.path.dirname(full_path), exist_ok=True)
 
         try:
             with open(full_path, 'w', encoding='utf-8') as f:
-                # Añadir doctype y referencias para HTML principal
-                if file_type == 'html' and relative_path == 'index.html': # Solo para el index.html principal
+                if file_type == 'html' and relative_path == 'index.html':
                     f.write("<!DOCTYPE html>\n<html>\n<head>\n")
                     f.write(f"<title>{config.get('project_name', 'Aio Project')}</title>\n")
-                    # Rutas relativas al output_dir para CSS y JS del frontend
                     f.write(f"<link rel='stylesheet' href='{os.path.basename(os.path.join(output_dir, 'style.css'))}'>\n")
                     f.write("</head>\n<body>\n")
                     f.write(content.strip())
@@ -434,7 +408,6 @@ def save_blocks_to_files(blocks, config, base_name):
     # Opcional: guardar el contenido bruto del meta
     if blocks['meta_block']:
         meta_output_path = os.path.join(output_dir, f'config_{base_name}.meta')
-        # Asegurarse de que el directorio del meta_output_path exista
         os.makedirs(os.path.dirname(meta_output_path), exist_ok=True)
         with open(meta_output_path, 'w', encoding='utf-8') as f:
             f.write(blocks['meta_block'][0].strip())
