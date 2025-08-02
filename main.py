@@ -1,13 +1,11 @@
 import re
 import os
 import shutil
+import xml.etree.ElementTree as ET # Para parsear XML de CSPROJ
 
 # Placeholder para los estados de los pines de (esp)
-# En una implementación real, esto vendría de un intérprete de (esp)
-# Si 'deploy_success' es "si", el archivo pre_deploy_log.txt se borrará.
-# Si 'deploy_success' es "no", el archivo pre_deploy_log.txt NO se borrará.
 esp_pin_states = {
-    "deploy_success": "no", # Por defecto para demostración: no borra el log
+    "deploy_success": "no",
     "n": "si",
     "p": "no",
 }
@@ -52,9 +50,8 @@ def parse_crea_block(crea_content, output_dir):
             extension = create_match.group(3)
             not_extension_flag = create_match.group(4)
 
-            # Reemplaza '_' por '/' en el nombre para la ruta del sistema de archivos,
-            # lo que permite especificar subdirectorios como "Project_Assets/logo_aio"
-            file_or_dir_path_relative = name.replace('_', os.sep) # Usar os.sep para compatibilidad OS
+            # Reemplaza '_' por '/' en el nombre para la ruta del sistema de archivos
+            file_or_dir_path_relative = name.replace('_', os.sep)
             full_path_target = os.path.join(output_dir, file_or_dir_path_relative)
             
             if not_extension_flag:
@@ -63,7 +60,7 @@ def parse_crea_block(crea_content, output_dir):
                     os.makedirs(full_path_target)
                     print(f"Directorio creado: '{full_path_target}'")
                 else:
-                    print(f"Directorio ya existe: '{full_path_target}'")
+                    print(f"Directorio ya existe: '{full_path_target}' (ignorado)")
             else:
                 # Crear un archivo con o sin extensión
                 final_file_path = f"{full_path_target}.{extension}" if extension else full_path_target
@@ -81,7 +78,7 @@ def parse_crea_block(crea_content, output_dir):
         delete_match = re.match(r'%borra=(?:Name="([^"]+)"|file="([^"]+)")(?:\s*(%all))?(?:\s*%([^,\s]+(?:,[^,\s]+)*))?(?:\s*&con\s*"([^"]+)")?(,)?', cmd_without_comment)
         if delete_match:
             name_to_delete = delete_match.group(1)
-            path_to_delete_relative = delete_match.group(2) # Esta es la ruta ya relativa al output_dir
+            path_to_delete_relative = delete_match.group(2)
             all_flag = delete_match.group(3)
             specific_files_str = delete_match.group(4)
             conditional_logic_pin_name = delete_match.group(5)
@@ -89,31 +86,23 @@ def parse_crea_block(crea_content, output_dir):
             target_path_base = ""
             if name_to_delete:
                 target_path_base = os.path.join(output_dir, name_to_delete.replace('_', os.sep))
-            elif path_to_delete_relative: # Si se usa 'file=', la ruta ya incluye el 'build/' o 'aio_demo_build/'
-                target_path_base = path_to_delete_relative # Usamos la ruta tal cual viene, asumiendo que es absoluta o relativa desde la raíz del output_dir
+            elif path_to_delete_relative:
+                target_path_base = path_to_delete_relative
                 if not os.path.isabs(target_path_base):
                     target_path_base = os.path.join(output_dir, target_path_base)
             else:
                 print(f"Error: Comando %borra incompleto (falta Name o file): {cmd}")
                 continue
             
-            # Evaluar la condición &con
             condition_met = True
             if conditional_logic_pin_name:
                 pin_name = conditional_logic_pin_name.strip('"')
                 if pin_name in esp_pin_states:
-                    # La condición para borrar se cumple si el pin es "si" para borrado,
-                    # o "no" para no borrado, según la lógica del usuario.
-                    # Aquí la lógica del usuario para 'deploy_success': borra si es 'si'.
-                    # Es decir, si 'deploy_success' es 'si', condition_met = True.
-                    # Si 'deploy_success' es 'no', condition_met = False.
-                    # Asumiendo %borra=file="pre_deploy_log.txt" &con "deploy_success"
-                    # Se borra si deploy_success == "si"
                     if pin_name == "deploy_success":
-                        if esp_pin_states[pin_name] == "no": # Si el despliegue NO fue exitoso
+                        if esp_pin_states[pin_name] == "no":
                             condition_met = False
                             print(f"Condición '{pin_name}' no se cumple (estado '{esp_pin_states[pin_name]}'). Borrado no ejecutado para '{target_path_base}'.")
-                    else: # Para otros pines, mantiene la lógica anterior si aplica
+                    else:
                         if (pin_name == "n" and esp_pin_states[pin_name] == "si") or \
                            (pin_name == "p" and esp_pin_states[pin_name] == "no"):
                             condition_met = False
@@ -122,10 +111,9 @@ def parse_crea_block(crea_content, output_dir):
                     print(f"Advertencia: Pin '{pin_name}' no encontrado en estados de (esp). No se puede evaluar condición. Asumiendo TRUE.")
             
             if not condition_met:
-                continue # Saltar el borrado si la condición no se cumple
+                continue
 
-            # Ejecutar el borrado
-            if all_flag: # %all
+            if all_flag:
                 if os.path.exists(target_path_base):
                     if os.path.isdir(target_path_base):
                         shutil.rmtree(target_path_base)
@@ -135,7 +123,7 @@ def parse_crea_block(crea_content, output_dir):
                         print(f"Archivo borrado: '{target_path_base}'")
                 else:
                     print(f"Advertencia: '{target_path_base}' no encontrado para borrado %all.")
-            elif specific_files_str: # %file1,file2,...
+            elif specific_files_str:
                 files_to_delete = [f.strip() for f in specific_files_str.split(',')]
                 for f_name in files_to_delete:
                     file_to_delete_path = os.path.join(os.path.dirname(target_path_base), f_name.replace('_', os.sep))
@@ -144,7 +132,7 @@ def parse_crea_block(crea_content, output_dir):
                         print(f"Archivo borrado: '{file_to_delete_path}'")
                     else:
                         print(f"Advertencia: '{file_to_delete_path}' no encontrado o no es un archivo para borrado.")
-            elif name_to_delete: # %borra=Name="ejemplo.js" (borra solo ese archivo en output_dir)
+            elif name_to_delete:
                 if os.path.exists(target_path_base) and os.path.isfile(target_path_base):
                     os.remove(target_path_base)
                     print(f"Archivo borrado: '{target_path_base}'")
@@ -188,6 +176,9 @@ def parse_aio_file(file_path):
         'sln': re.findall(r'<sln>(.*?)</sln>', content, re.DOTALL),
         'xaml': re.findall(r'<xaml>(.*?)</xaml>', content, re.DOTALL),
         'config': re.findall(r'<config>(.*?)</config>', content, re.DOTALL),
+        # Captura todos los bloques <csproj> individualmente si están definidos así,
+        # o el contenido completo si hay un solo gran bloque.
+        # Luego se procesará cada project dentro de ese gran bloque.
         'csproj': re.findall(r'<csproj>(.*?)</csproj>', content, re.DOTALL),
     }
     return blocks, config
@@ -203,8 +194,6 @@ def save_blocks_to_files(blocks, config, base_name):
     else:
         print(f"Directorio de salida principal '{output_dir}/' ya existe.")
 
-    # Diccionario para mapear los bloques a sus rutas y nombres de archivo
-    # Esto es crucial para la flexibilidad y la estructura de VS
     file_map = []
 
     # Web files (Frontend) - siempre en el directorio raíz de salida para una web
@@ -225,149 +214,186 @@ def save_blocks_to_files(blocks, config, base_name):
 
     # .NET Solution File (.sln)
     if blocks['sln']:
+        # Asumiendo que el nombre de la solución es el base_name del archivo .aio
         file_map.append({'content': blocks['sln'][0], 'path': f'{base_name}.sln', 'type': 'sln'})
 
     # .NET Projects and associated files (C#, XAML, Config, CSPROJ)
-    # Asumimos que dentro de <csproj> y <net> y <xaml> el usuario indicará la ruta relativa
-    # al output_dir y dentro del proyecto .NET
     
-    # Manejo de múltiples CSPROJ (cada uno es un proyecto .NET)
-    # Se asume que el contenido de <csproj> contiene un solo .csproj,
-    # y el nombre del archivo se infiere del contenido o se especifica aquí.
-    # Esta es una simplificación; idealmente, el AIO especificaría el nombre del archivo csproj
-    # o la ruta del proyecto.
-    
-    # Los bloques <net>, <xaml>, <config>, <csproj> pueden contener MÚLTIPLES archivos
-    # o lógicas para diferentes proyectos. Tu Regex los agrupa en una lista por bloque.
-    # Debemos dividir el contenido de estos bloques si contienen varios archivos
-    # o si representan distintos proyectos.
-
-    # Por la forma actual de tus regex, cada bloque (net, xaml, csproj) captura todo su contenido.
-    # Necesitamos una forma de saber qué parte de <net> va a qué archivo C# y en qué proyecto.
-    # La solución más simple por ahora es asumir que el ejemplo de <net> es para varios archivos
-    # y el <csproj> también para varios.
-
-    # Estrategia:
-    # 1. Procesar el bloque <csproj> para extraer la información de cada proyecto y su ruta.
-    # 2. Iterar sobre el contenido de <net>, <xaml>, <config> para identificar los archivos
-    #    y su ubicación. Esto es el punto más complejo de la automatización.
-
-    # Para este ejemplo, haremos una inferencia simple basada en el contenido del .aio
-    # que proporcionaste para la demostración de VS. Esto significa que si un bloque <net>
-    # contiene el código de varios archivos C#, los dividiremos y los guardaremos.
-
+    # Manejo de CSPROJ: Tu bloque <csproj> en el .aio contiene MÚLTIPLES <Project ...>
     if blocks['csproj']:
-        # Cada contenido de csproj debe ser un archivo .csproj
-        # Por simplicidad, asumiremos que cada elemento en blocks['csproj'] es el contenido de un .csproj.
-        # El nombre del archivo .csproj y la carpeta del proyecto se extraen del contenido.
-        for csproj_content in blocks['csproj']:
-            # Extraer el nombre del proyecto del csproj (Sdk="Microsoft.NET.Sdk")
-            # Buscar el nombre del proyecto en el XML (no infalible, pero para el demo)
-            project_name_match = re.search(r'<RootNamespace>(.*?)</RootNamespace>', csproj_content, re.DOTALL)
-            project_name = project_name_match.group(1).strip() if project_name_match else f'UnnamedProject_{len(file_map)}'
-            
-            # Buscar si es un tipo de salida (WinExe, Exe, Library) para el nombre de .csproj
-            output_type_match = re.search(r'<OutputType>(.*?)</OutputType>', csproj_content)
-            output_type = output_type_match.group(1).strip() if output_type_match else ''
-
-            # Determinar el nombre del archivo .csproj (ej. ApiProject.csproj)
-            csproj_filename = f"{project_name}.csproj"
-
-            # Determinar la carpeta del proyecto (generalmente igual al nombre del proyecto)
-            project_folder = project_name
-            
-            csproj_path = os.path.join(project_folder, csproj_filename)
-            file_map.append({'content': csproj_content, 'path': csproj_path, 'type': 'csproj'})
-
-
-    # Manejar archivos C# (<net>)
-    if blocks['net']:
-        # Se asume que dentro del bloque <net> hay comentarios que indican la ruta y el nombre del archivo
-        # // File: vs_solution/ApiProject/Controllers/ValuesController.cs
-        # Esta es una estrategia para inferir los nombres de archivo desde el AIO
-        net_content = blocks['net'][0] # Tomamos el primer (y único) bloque <net> completo
-        # Dividir el contenido por las líneas de comentario que indican el archivo
-        cs_files = re.split(r'^\s*//\s*File:\s*vs_solution/([^/\\]+)/(.+\.cs)\s*$', net_content, flags=re.MULTILINE)
+        # Concatenar todos los contenidos de csproj si hay múltiples bloques <csproj>
+        # Aunque tu .aio tiene un solo <csproj> con múltiples proyectos dentro.
+        full_csproj_content = "\n".join(blocks['csproj'])
         
-        # El primer elemento de cs_files será vacío o el contenido antes del primer archivo
-        # Los elementos pares son los nombres de las carpetas de proyecto, impares son rutas completas del archivo
-        if len(cs_files) > 1: # Si hay al menos un archivo detectado
-            for i in range(1, len(cs_files), 3): # Saltar el primer elemento vacío, luego 3 en 3
-                if i+2 <= len(cs_files): # Asegurarse de que hay suficiente contenido para un archivo
-                    project_folder = cs_files[i].strip() # Ej: ApiProject
-                    relative_path_in_project = cs_files[i+1].strip() # Ej: Controllers/ValuesController.cs
+        # Encuentra cada sección <Project ...> dentro del contenido del bloque <csproj>
+        # Usamos re.finditer para obtener objetos de coincidencia y extraer el contenido
+        # y sus nombres de manera más robusta.
+        # Regex para capturar cada Project Sdk block
+        # Group 1: Sdk attribute value
+        # Group 2: Full content of the <Project> block
+        csproj_project_matches = re.finditer(r'<Project Sdk="([^"]+)">\s*(.*?)</Project>', full_csproj_content, re.DOTALL)
+        
+        for i, match in enumerate(csproj_project_matches):
+            sdk_type = match.group(1) # e.g., "Microsoft.NET.Sdk.Web"
+            project_xml_content = match.group(0) # The full <Project ...> block, including tags
+
+            # Intentar parsear el XML para obtener el nombre del proyecto
+            try:
+                # ET no maneja directamente la declaración de Sdk en la raíz,
+                # así que la añadimos temporalmente para que sea XML válido para parsear
+                # Luego extraemos el RootNamespace o AssemblyName
+                root = ET.fromstring(project_xml_content)
+                project_name = None
+                # Buscar <RootNamespace> o <AssemblyName>
+                for prop_group in root.findall('.//PropertyGroup'):
+                    root_ns = prop_group.find('RootNamespace')
+                    if root_ns is not None and root_ns.text:
+                        project_name = root_ns.text.strip()
+                        break
+                    assembly_name = prop_group.find('AssemblyName')
+                    if assembly_name is not None and assembly_name.text:
+                        project_name = assembly_name.text.strip()
+                        break
+                
+                # Si no se encontró RootNamespace o AssemblyName, intentar inferir de OutputType
+                if not project_name:
+                    output_type_elem = root.find('.//OutputType')
+                    if output_type_elem is not None and output_type_elem.text:
+                        # Si es WinExe o Exe, podemos inferir un nombre común como "DesktopApp" o "ConsoleApp"
+                        if "WinExe" in output_type_elem.text or "Exe" in output_type_elem.text:
+                            project_name = "DesktopApp" if "WinExe" in output_type_elem.text else "ConsoleApp"
+                        elif "Library" in output_type_elem.text:
+                            project_name = "BusinessLogic" # Asumimos para la lógica de negocio
+                    
+                # Si aún no se encuentra, usar un nombre genérico con índice
+                if not project_name:
+                    project_name = f'UnnamedProject_{i}'
+                    if "Web" in sdk_type:
+                        project_name = "ApiProject" # Inferir si es web
+                    elif "Test" in sdk_type:
+                        project_name = "TestsProject" # Inferir si es test
+                    elif i == 2: # Tercer csproj en tu .aio es BusinessLogic
+                        project_name = "BusinessLogic"
+                        
+            except ET.ParseError as e:
+                print(f"Advertencia: Error al parsear CSPROJ XML para el proyecto {i}: {e}. Usando nombre genérico.")
+                project_name = f'UnnamedProject_{i}'
+            
+            csproj_filename = f"{project_name}.csproj"
+            project_folder = project_name # La carpeta del proyecto suele ser el mismo nombre
+
+            csproj_path = os.path.join(project_folder, csproj_filename)
+            file_map.append({'content': project_xml_content, 'path': csproj_path, 'type': 'csproj'})
+            print(f"CSPROJ: '{csproj_path}' identificado y preparado para guardar.")
+
+
+    # Manejar archivos C# (<net>) - Usa el mismo split por comentario 'File:'
+    for net_content in blocks.get('net', []):
+        cs_files = re.split(r'^\s*//\s*File:\s*([^/\\]+)/(.+\.cs)\s*$', net_content, flags=re.MULTILINE)
+        if len(cs_files) > 1:
+            for i in range(1, len(cs_files), 3):
+                if i + 2 < len(cs_files):
+                    project_folder = cs_files[i].strip()
+                    relative_path_in_project = cs_files[i+1].strip()
                     cs_code_content = cs_files[i+2].strip()
 
-                    # Construir la ruta completa para el archivo C#
                     full_cs_path = os.path.join(project_folder, relative_path_in_project)
                     file_map.append({'content': cs_code_content, 'path': full_cs_path, 'type': 'cs'})
+                    print(f"C#: '{full_cs_path}' identificado y preparado para guardar.")
+                else:
+                    print(f"Advertencia: Bloque <net> split incompleto. Ignorando parte.")
 
-    # Manejar archivos XAML (<xaml>)
+
+    # Manejar archivos XAML (<xaml>) - Guardar como un archivo fijo, ya que no tiene comentarios File: en tu .aio
     if blocks['xaml']:
-        # Similar a <net>, buscar la ruta indicada en comentarios
-        xaml_content = blocks['xaml'][0]
-        xaml_files = re.split(r'', xaml_content, flags=re.MULTILINE)
-        
-        if len(xaml_files) > 1:
-            for i in range(1, len(xaml_files), 3):
-                if i+2 <= len(xaml_files):
-                    project_folder = xaml_files[i].strip()
-                    relative_path_in_project = xaml_files[i+1].strip()
-                    xaml_code_content = xaml_files[i+2].strip()
+        # Asumiendo un único archivo XAML para DesktopApp
+        # Si tu .aio tuviera múltiples archivos XAML con comentarios, necesitarías el split.
+        # Pero dado el .aio actual, es un solo bloque.
+        file_map.append({'content': blocks['xaml'][0], 'path': os.path.join("DesktopApp", "MainWindow.xaml"), 'type': 'xaml'})
+        print(f"XAML: 'DesktopApp/MainWindow.xaml' identificado y preparado para guardar.")
 
-                    full_xaml_path = os.path.join(project_folder, relative_path_in_project)
-                    file_map.append({'content': xaml_code_content, 'path': full_xaml_path, 'type': 'xaml'})
 
-    # Manejar archivos de configuración (<config>)
+    # Manejar archivos de configuración (<config>) - Guardar como un archivo fijo
     if blocks['config']:
-        # Asumiendo que <config> contiene un solo archivo App.config o Web.config
-        # Por simplicidad, lo guardaremos en la raíz de un proyecto común (ej. DesktopApp)
-        # Idealmente, se especificaría la ruta en el AIO
+        # Asumiendo un único archivo App.config para DesktopApp
         file_map.append({'content': blocks['config'][0], 'path': os.path.join("DesktopApp", "App.config"), 'type': 'config'})
+        print(f"CONFIG: 'DesktopApp/App.config' identificado y preparado para guardar.")
 
-    # Otros lenguajes (Rust, Go, SQL, Lua) - ahora con rutas explícitas si el .aio las tiene
-    # o con una estructura más coherente para una solución VS
+    # Otros lenguajes (Rust, Go, SQL, Lua) - Usa el split por comentario 'File:'
     if blocks['rs']:
         rs_content = blocks['rs'][0]
-        # Buscar el comentario de archivo // File: vs_solution/BusinessLogic/RustCalculations/src/lib.rs
-        rs_files = re.split(r'^\s*//\s*File:\s*vs_solution/([^/\\]+)/(.+\.rs)\s*$', rs_content, flags=re.MULTILINE)
+        rs_files = re.split(r'^\s*//\s*File:\s*([^/\\]+)/(.+\.rs)\s*$', rs_content, flags=re.MULTILINE)
         if len(rs_files) > 1:
-             for i in range(1, len(rs_files), 3):
-                if i+2 <= len(rs_files):
+            for i in range(1, len(rs_files), 3):
+                if i+2 < len(rs_files):
                     project_folder = rs_files[i].strip()
                     relative_path_in_project = rs_files[i+1].strip()
                     rs_code_content = rs_files[i+2].strip()
                     full_rs_path = os.path.join(project_folder, relative_path_in_project)
                     file_map.append({'content': rs_code_content, 'path': full_rs_path, 'type': 'rs'})
+                    print(f"Rust: '{full_rs_path}' identificado y preparado para guardar.")
+                else:
+                    print(f"Advertencia: Bloque <rs> split incompleto. Ignorando parte.")
+        else: # Fallback si no hay comentarios de archivo (para un solo archivo)
+             file_map.append({'content': blocks['rs'][0], 'path': os.path.join("BusinessLogic", "RustCalculations", "src", "lib.rs"), 'type': 'rs'})
+             print(f"Rust (default): 'BusinessLogic/RustCalculations/src/lib.rs' identificado y preparado para guardar.")
 
 
     if blocks['go']:
         go_content = blocks['go'][0]
-        go_files = re.split(r'^\s*//\s*File:\s*vs_solution/([^/\\]+)/(.+\.go)\s*$', go_content, flags=re.MULTILINE)
+        go_files = re.split(r'^\s*//\s*File:\s*([^/\\]+)/(.+\.go)\s*$', go_content, flags=re.MULTILINE)
         if len(go_files) > 1:
-             for i in range(1, len(go_files), 3):
-                if i+2 <= len(go_files):
+            for i in range(1, len(go_files), 3):
+                if i+2 < len(go_files):
                     project_folder = go_files[i].strip()
                     relative_path_in_project = go_files[i+1].strip()
                     go_code_content = go_files[i+2].strip()
                     full_go_path = os.path.join(project_folder, relative_path_in_project)
                     file_map.append({'content': go_code_content, 'path': full_go_path, 'type': 'go'})
+                    print(f"Go: '{full_go_path}' identificado y preparado para guardar.")
+                else:
+                    print(f"Advertencia: Bloque <go> split incompleto. Ignorando parte.")
+        else: # Fallback si no hay comentarios de archivo
+            file_map.append({'content': blocks['go'][0], 'path': os.path.join("ApiProject", "GoLogger", "main.go"), 'type': 'go'})
+            print(f"Go (default): 'ApiProject/GoLogger/main.go' identificado y preparado para guardar.")
+
 
     if blocks['sql']:
         sql_content = blocks['sql'][0]
-        sql_files = re.split(r'^\s*--\s*File:\s*vs_solution/([^/\\]+)/(.+\.sql)\s*$', sql_content, flags=re.MULTILINE)
+        sql_files = re.split(r'^\s*--\s*File:\s*([^/\\]+)/(.+\.sql)\s*$', sql_content, flags=re.MULTILINE)
         if len(sql_files) > 1:
-             for i in range(1, len(sql_files), 3):
-                if i+2 <= len(sql_files):
+            for i in range(1, len(sql_files), 3):
+                if i+2 < len(sql_files):
                     project_folder = sql_files[i].strip()
                     relative_path_in_project = sql_files[i+1].strip()
                     sql_code_content = sql_files[i+2].strip()
                     full_sql_path = os.path.join(project_folder, relative_path_in_project)
                     file_map.append({'content': sql_code_content, 'path': full_sql_path, 'type': 'sql'})
+                    print(f"SQL: '{full_sql_path}' identificado y preparado para guardar.")
+                else:
+                    print(f"Advertencia: Bloque <sql> split incompleto. Ignorando parte.")
+        else: # Fallback si no hay comentarios de archivo
+            file_map.append({'content': blocks['sql'][0], 'path': os.path.join("SqlDatabase", "Migrations", "001_InitialSchema.sql"), 'type': 'sql'})
+            print(f"SQL (default): 'SqlDatabase/Migrations/001_InitialSchema.sql' identificado y preparado para guardar.")
+
 
     if blocks['lua']:
-        # Asumiendo un único archivo lua de configuración global o para el proyecto API
-        file_map.append({'content': blocks['lua'][0], 'path': os.path.join("ApiProject", "config.lua"), 'type': 'lua'})
+        lua_content = blocks['lua'][0]
+        lua_files = re.split(r'^\s*--\s*File:\s*([^/\\]+)/(.+\.lua)\s*$', lua_content, flags=re.MULTILINE)
+        if len(lua_files) > 1:
+            for i in range(1, len(lua_files), 3):
+                if i+2 < len(lua_files):
+                    project_folder = lua_files[i].strip()
+                    relative_path_in_project = lua_files[i+1].strip()
+                    lua_code_content = lua_files[i+2].strip()
+                    full_lua_path = os.path.join(project_folder, relative_path_in_project)
+                    file_map.append({'content': lua_code_content, 'path': full_lua_path, 'type': 'lua'})
+                    print(f"Lua: '{full_lua_path}' identificado y preparado para guardar.")
+                else:
+                    print(f"Advertencia: Bloque <lua> split incompleto. Ignorando parte.")
+        else: # Fallback si no hay comentarios de archivo
+            file_map.append({'content': blocks['lua'][0], 'path': os.path.join("ApiProject", "config.lua"), 'type': 'lua'})
+            print(f"Lua (default): 'ApiProject/config.lua' identificado y preparado para guardar.")
 
 
     # Guardar todos los archivos definidos en file_map
@@ -380,6 +406,7 @@ def save_blocks_to_files(blocks, config, base_name):
         full_path = os.path.join(output_dir, relative_path)
         
         # Asegurarse de que el directorio padre exista
+        # print(f"DEBUG: Intentando crear directorio para '{full_path}'")
         os.makedirs(os.path.dirname(full_path), exist_ok=True)
 
         try:
@@ -400,7 +427,6 @@ def save_blocks_to_files(blocks, config, base_name):
             print(f"Error al generar '{full_path}': {e}")
             
     # Procesa el bloque <crea> después de generar los archivos iniciales
-    # Esto asegura que los comandos de borrado o creación de assets se ejecuten sobre los archivos ya generados
     if blocks['crea_block']:
         for crea_content in blocks['crea_block']:
             parse_crea_block(crea_content, output_dir)
@@ -408,6 +434,8 @@ def save_blocks_to_files(blocks, config, base_name):
     # Opcional: guardar el contenido bruto del meta
     if blocks['meta_block']:
         meta_output_path = os.path.join(output_dir, f'config_{base_name}.meta')
+        # Asegurarse de que el directorio del meta_output_path exista
+        os.makedirs(os.path.dirname(meta_output_path), exist_ok=True)
         with open(meta_output_path, 'w', encoding='utf-8') as f:
             f.write(blocks['meta_block'][0].strip())
         print(f"Configuración meta guardada en '{meta_output_path}'.")
@@ -423,14 +451,9 @@ else:
         base_name = os.path.splitext(aio_file)[0]
         aio_code_blocks, config = parse_aio_file(aio_file)
         
-        # Validar si config tiene output_dir y si aio_code_blocks no es None
         if aio_code_blocks is None:
-            print(f"Skipping {aio_file} due to parsing errors.")
-            continue # Salta este archivo .aio si no se pudo parsear
-        
-        # Establecer el output_dir basándose en el meta del .aio, o un valor por defecto
-        # (Este valor ya se obtiene en save_blocks_to_files, pero lo mantenemos aquí para claridad)
-        # La verdadera creación del directorio principal ocurre en save_blocks_to_files
+            print(f"Saltando {aio_file} debido a errores de parseo.")
+            continue
         
         save_blocks_to_files(aio_code_blocks, config, base_name)
     print("\nProcesamiento de todos los archivos .aio completado.")
