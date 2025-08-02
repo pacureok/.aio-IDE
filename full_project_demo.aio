@@ -10,18 +10,23 @@ description = "Comprehensive Aio project demonstrating a multi-project Visual St
 # Crear directorio principal de la solución
 $crea=file Name="vs_solution" %Not_extencion,
 
-# Crear directorios para cada proyecto dentro de la solución
-$crea=file Name="vs_solution/ApiProject" %Not_extencion,
-$crea=file Name="vs_solution/DesktopApp" %Not_extencion,
-$crea=file Name="vs_solution/BusinessLogic" %Not_extencion,
-$crea=file Name="vs_solution/TestsProject" %Not_extencion,
+# Estos directorios de proyecto serán creados automáticamente por os.makedirs cuando se guarden los .csproj y .cs
+# Los comentamos aquí para evitar redundancia y posibles FileExistsError
+# $crea=file Name="vs_solution/ApiProject" %Not_extencion,
+# $crea=file Name="vs_solution/DesktopApp" %Not_extencion,
+# $crea=file Name="vs_solution/BusinessLogic" %Not_extencion,
+# $crea=file Name="vs_solution/TestsProject" %Not_extencion,
 
-# Crear subdirectorios específicos dentro de los proyectos
+# Crear subdirectorios específicos dentro de los proyectos (estos sí son útiles, si no se infieren del File: )
 $crea=file Name="vs_solution/ApiProject/Controllers" %Not_extencion,
 $crea=file Name="vs_solution/DesktopApp/Views" %Not_extencion,
 $crea=file Name="vs_solution/DesktopApp/ViewModels" %Not_extencion,
 $crea=file Name="vs_solution/BusinessLogic/Models" %Not_extencion,
 $crea=file Name="vs_solution/TestsProject/UnitTests" %Not_extencion,
+$crea=file Name="vs_solution/BusinessLogic/RustCalculations/src" %Not_extencion,
+$crea=file Name="vs_solution/ApiProject/GoLogger" %Not_extencion,
+$crea=file Name="vs_solution/SqlDatabase/Migrations" %Not_extencion,
+
 
 # Crear archivos de ejemplo de assets/recursos dentro de la solución
 $crea=file Name="vs_solution/SharedAssets/icon" %extencion .ico,
@@ -29,24 +34,24 @@ $crea=file Name="vs_solution/SharedAssets/config" %extencion .json
 </crea>
 
 <video>
-  <h1>Aio Visual Studio 2022 Solution Demo</h1>
-  <p>Esta página web es solo para demostración. El verdadero proyecto de VS se encuentra en la carpeta `vs_solution/`.</p>
-  <p>Abre el archivo `vs_solution/VS_Community_2022_Demo.sln` en Visual Studio 2022 para ver la solución completa.</p>
+    <h1>Aio Visual Studio 2022 Solution Demo</h1>
+    <p>Esta página web es solo para demostración. El verdadero proyecto de VS se encuentra en la carpeta `vs_solution/`.</p>
+    <p>Abre el archivo `vs_solution/VS_Community_2022_Demo.sln` en Visual Studio 2022 para ver la solución completa.</p>
 </video>
 
 <cs>
 body {
-  font-family: 'Segoe UI', sans-serif;
-  background-color: #1b2838; /* Color oscuro similar a VS */
-  color: #c7d2e0;
-  text-align: center;
-  padding: 50px;
+    font-family: 'Segoe UI', sans-serif;
+    background-color: #1b2838; /* Color oscuro similar a VS */
+    color: #c7d2e0;
+    text-align: center;
+    padding: 50px;
 }
 h1 {
-  color: #007acc; /* Azul de Visual Studio */
+    color: #007acc; /* Azul de Visual Studio */
 }
 p {
-  font-size: 1.1em;
+    font-size: 1.1em;
 }
 </cs>
 
@@ -58,8 +63,8 @@ console.log("Aio generated web page for VS Solution Demo.");
 # Lógica de despliegue para el entorno de VS
 $creafuntion "configurar_entorno_vs" &intert 
 (
-  debug_mode = "verdadero",
-  platform = "Any_CPU"
+    debug_mode = "verdadero",
+    platform = "Any_CPU"
 ),
 @decte (evento="construccion_exitosa_vs" of accion "configurar_entorno_vs"=run log_message "Solución de VS construida con éxito."),
 (/esp)
@@ -68,8 +73,8 @@ $creafuntion "configurar_entorno_vs" &intert
 # Build pipeline logic for VS solution
 $create_function "configure_vs_build" &insert 
 (
-  configuration = "Debug",
-  target_framework = "net8.0"
+    configuration = "Debug",
+    target_framework = "net8.0"
 ),
 @detect (event="build_success" of action "configure_vs_build"=run log_message "VS solution build succeeded."),
 </ING>
@@ -86,7 +91,7 @@ $task "Build_VS_Solution",
 
 <net>
 // C# Code for an ASP.NET Core Web API Controller
-// File: vs_solution/ApiProject/Controllers/ValuesController.cs
+// File: ApiProject/Controllers/ValuesController.cs
 using Microsoft.AspNetCore.Mvc;
 using BusinessLogic.Models; // Referencia al proyecto BusinessLogic
 
@@ -106,7 +111,7 @@ namespace ApiProject.Controllers
     }
 }
 // C# Code for a Business Logic Model
-// File: vs_solution/BusinessLogic/Models/User.cs
+// File: BusinessLogic/Models/User.cs
 namespace BusinessLogic.Models
 {
     public class User
@@ -116,7 +121,7 @@ namespace BusinessLogic.Models
     }
 }
 // C# Code for a Desktop App Main Window Code-behind
-// File: vs_solution/DesktopApp/MainWindow.xaml.cs
+// File: DesktopApp/MainWindow.xaml.cs
 using System.Windows;
 using BusinessLogic.Models; // Referencia al proyecto BusinessLogic
 
@@ -138,9 +143,9 @@ namespace DesktopApp
     }
 }
 // C# Code for a Unit Test Example
-// File: vs_solution/TestsProject/UnitTests/MathTests.cs
+// File: TestsProject/UnitTests/MathTests.cs
 using Xunit; // Requiere Xunit Nuget package
-using BusinessLogic.Calculations; // Asumiendo que esta clase existe
+// using BusinessLogic.Calculations; // Asumiendo que esta clase existe
 
 namespace TestsProject.UnitTests
 {
@@ -159,6 +164,7 @@ namespace TestsProject.UnitTests
 
 <lua>
 -- Lua script for build automation tasks or pre/post-build steps
+-- File: ApiProject/config.lua
 print("Lua: Ejecutando script de automatización de compilación para VS.")
 -- Simulate checking build environment variables
 if os.getenv("CONFIGURATION") == "Debug" then
@@ -170,14 +176,14 @@ end
 
 <rs>
 // Rust Library for High-Performance Calculations
-// File: vs_solution/BusinessLogic/RustCalculations/src/lib.rs
+// File: BusinessLogic/RustCalculations/src/lib.rs
 // Note: Integrating Rust into .NET requires FFI (Foreign Function Interface) setup
 #[no_mangle]
 pub extern "C" fn multiply_numbers(a: i32, b: i32) -> i32 {
     a * b
 }
 // Example of a small main.rs if it were a standalone Rust app for testing
-// File: vs_solution/BusinessLogic/RustCalculations/src/main.rs
+// File: BusinessLogic/RustCalculations/src/main.rs
 /*
 fn main() {
     println!("Rust test app running. 5 * 3 = {}", multiply_numbers(5, 3));
@@ -187,7 +193,7 @@ fn main() {
 
 <go>
 // Go Microservice for logging or auxiliary tasks
-// File: vs_solution/ApiProject/GoLogger/main.go
+// File: ApiProject/GoLogger/main.go
 package main
 
 import (
@@ -207,7 +213,7 @@ func main() {
 
 <sql>
 -- SQL Database Migration Script
--- File: vs_solution/SqlDatabase/Migrations/001_InitialSchema.sql
+-- File: SqlDatabase/Migrations/001_InitialSchema.sql
 CREATE TABLE IF NOT EXISTS AppSettings (
     Key TEXT PRIMARY KEY,
     Value TEXT
@@ -308,7 +314,7 @@ EndGlobal
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-  </PropertyGroup>
+    <RootNamespace>ApiProject</RootNamespace> </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
   </ItemGroup>
@@ -324,7 +330,7 @@ EndGlobal
     <UseWPF>true</UseWPF>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-  </PropertyGroup>
+    <RootNamespace>DesktopApp</RootNamespace> </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\BusinessLogic\BusinessLogic.csproj" />
   </ItemGroup>
@@ -335,9 +341,9 @@ EndGlobal
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-  </PropertyGroup>
+    <RootNamespace>BusinessLogic</RootNamespace> </PropertyGroup>
   <ItemGroup>
-    </ItemGroup>
+  </ItemGroup>
 </Project>
 
 <Project Sdk="Microsoft.NET.Sdk">
@@ -347,7 +353,7 @@ EndGlobal
     <ImplicitUsings>enable</ImplicitUsings>
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
-  </PropertyGroup>
+    <RootNamespace>TestsProject</RootNamespace> </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
     <PackageReference Include="xunit" Version="2.5.3" />
